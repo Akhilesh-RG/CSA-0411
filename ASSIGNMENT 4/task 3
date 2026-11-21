@@ -1,0 +1,58 @@
+
+#include <stdio.h>
+
+int main(void)
+{
+    int requests = 10000;
+
+    double hot_fraction = 0.70;
+    double cache_hit_rate = 0.90;
+
+    double hdd_latency = 12.0;
+    double ssd_latency = 1.0;
+
+    /* Design A: HDD only */
+    double design_a_total =
+        requests * hdd_latency;
+
+    /* Design B: SSD cache + HDD */
+    double hot_requests =
+        requests * hot_fraction;
+
+    double cold_requests =
+        requests - hot_requests;
+
+    double cache_hits =
+        hot_requests * cache_hit_rate;
+
+    double cache_misses =
+        hot_requests - cache_hits;
+
+    double design_b_total =
+        (cache_hits * ssd_latency) +
+        ((cache_misses + cold_requests) * hdd_latency);
+
+    double avg_a = design_a_total / requests;
+    double avg_b = design_b_total / requests;
+
+    double improvement =
+        (1 - (design_b_total / design_a_total)) * 100;
+
+    printf("VIDEO STORAGE SIMULATION\n");
+    printf("------------------------\n");
+
+    printf("Total requests: %d\n", requests);
+
+    printf("\nDESIGN A - HDD ONLY\n");
+    printf("Average latency: %.2f ms\n", avg_a);
+
+    printf("\nDESIGN B - SSD CACHE + HDD\n");
+    printf("Cache hits: %.0f\n", cache_hits);
+    printf("Cache misses: %.0f\n", cache_misses);
+    printf("Average latency: %.2f ms\n", avg_b);
+
+    printf("\nPERFORMANCE COMPARISON\n");
+    printf("Latency improvement: %.2f%%\n", improvement);
+
+    return 0;
+}
