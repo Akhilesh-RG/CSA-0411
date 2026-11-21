@@ -1,0 +1,150 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define N 8
+#define MAXCYL 199
+
+int req[N] = {98, 183, 37, 122, 14, 124, 65, 67};
+
+int cmp(const void *a, const void *b)
+{
+    return (*(const int *)a - *(const int *)b);
+}
+
+void show(const char *name, int order[], int n, int head)
+{
+    int total = 0;
+    int pos = head;
+
+    printf("%-7s %d", name, head);
+
+    for (int i = 0; i < n; i++) {
+        printf(" %d", order[i]);
+        total += abs(order[i] - pos);
+        pos = order[i];
+    }
+
+    printf(" -> %d cylinders\n", total);
+}
+
+int main(void)
+{
+    int head = 53;
+    int order[N + 2];
+    int s[N];
+
+    memcpy(s, req, sizeof(req));
+    qsort(s, N, sizeof(int), cmp);
+
+    /* FCFS */
+    show("FCFS", req, N, head);
+
+    /* SSTF */
+    int done[N] = {0};
+    int pos = head;
+
+    for (int k = 0; k < N; k++) {
+        int best = -1;
+        int min_dist = MAXCYL + 1;
+
+        for (int i = 0; i < N; i++) {
+            int dist = abs(req[i] - pos);
+
+            if (!done[i] && dist < min_dist) {
+                min_dist = dist;
+                best = i;
+            }
+        }
+
+        done[best] = 1;
+        order[k] = req[best];
+        pos = req[best];
+    }
+
+    show("SSTF", order, N, head);
+
+    /* SCAN - moving towards 0 first */
+    int n = 0;
+
+    for (int i = N - 1; i >= 0; i--)
+        if (s[i] < head)
+            order[n++] = s[i];
+
+    order[n++] = 0;
+
+    for (int i = 0; i < N; i++)
+        if (s[i] > head)
+            order[n++] = s[i];
+
+    show("SCAN", order, n, head);
+
+    /* C-SCAN - moving towards 199 */
+    n = 0;
+
+    for (int i = 0; i < N; i++)
+        if (s[i] > head)
+            order[n++] = s[i];
+
+    order[n++] = MAXCYL;
+    order[n++] = 0;
+
+    for (int i = 0; i < N; i++)
+        if (s[i] < head)
+            order[n++] = s[i];
+
+    printf("C-SCAN  %d -> %d -> 0", head, MAXCYL);
+
+    int part = 0;
+    pos = head;
+
+    for (int i = 0; i < n; i++) {
+        if (order[i] == 0)
+            break;
+
+        part += abs(order[i] - pos);
+        pos = order[i];
+    }
+
+    int back = 0;
+    pos = 0;
+
+    for (int i = 0; i < N; i++) {
+        if (s[i] < head) {
+            back += abs(s[i] - pos);
+            pos = s[i];
+        }
+    }
+
+    printf(" -> %d cylinders (+199 for jump)\n",
+           part - (MAXCYL - head) + back);
+
+    /* LOOK - moving towards 0 first */
+    n = 0;
+
+    for (int i = N - 1; i >= 0; i--)
+        if (s[i] < head)
+            order[n++] = s[i];
+
+    for (int i = 0; i < N; i++)
+        if (s[i] > head)
+            order[n++] = s[i];
+
+    show("LOOK", order, n, head);
+
+    /* C-LOOK - moving upwards first */
+    n = 0;
+
+    for (int i = 0; i < N; i++)
+        if (s[i] > head)
+            order[n++] = s[i];
+
+    for (int i = 0; i < N; i++)
+        if (s[i] < head)
+            order[n++] = s[i];
+
+    show("C-LOOK", order, n, head);
+
+    return 0;
+}
